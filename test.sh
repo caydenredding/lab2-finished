@@ -25,7 +25,7 @@ fi
 
 
 
-echo -e "\n\n~~ File Handling~~"
+echo -e "\n~~ File Handling~~"
 
 echo -n "Testing bad filename - "
 ./studentData fake.csv > tmp
@@ -81,7 +81,7 @@ else
     echo "FAIL"
 fi
 
-echo -e "\n\n~~ Bad user inputs ~~"
+echo -e "\n~~ Bad user inputs ~~"
 
 echo -n "Testing bad menu input (wrong) - "
 echo "a" | timeout 0.2s ./studentData data/original.csv > tmp
@@ -111,7 +111,7 @@ else
 fi
 
 
-echo -e "\n\n~~ Success ~~"
+echo -e "\n~~ Success ~~"
 
 echo -n "Testing option 1 - "
 echo "1" | timeout 0.2s ./studentData data/good_1_85.csv > tmp
@@ -140,6 +140,9 @@ else
     echo "FAIL"
 fi
 
+## this is a special case we usually add when there is a potential of having
+# a data file with no records - because the developer needs to handle
+# averages gracefully..
 echo -n "Testing option 3 (no data) - "
 echo "3" | timeout 0.2s ./studentData data/good_empty.csv > tmp
 if grep -q "Average grade: 0" tmp;
