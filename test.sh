@@ -1,25 +1,21 @@
 #!/bin/bash
 
+# remove read permissions from this file - note: put them back at the end!
+chmod -r data/bad_perms.csv
 
-# I break my sections of tests up with a couple of linebreaks and a title
-
-echo -e "\n\n~~ Argument Tests ~~"
-
-# I use an echo to explain the purpose of each test
-# the -n means 'print the next thing on the same line'
-# which makes it easier to read the output
+echo -e "~~ Argument Tests ~~"
 
 echo -n "Testing no arguments - "
-
-# I run the executable and pipe the output to a file called 'tmp'
-# this lets me check the prints!
-
 ./studentData > tmp
+if grep -q "Usage: studentData <filename>" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
 
-# And now I search to make sure the right print came out
-# you have met grep before - it lets us search
-# -q means 'quiet' which is what lets us do an 'if' on it
-
+echo -n "Testing 2 arguments - "
+./studentData x x > tmp
 if grep -q "Usage: studentData <filename>" tmp;
 then
     echo "PASS"
@@ -28,20 +24,141 @@ else
 fi
 
 
-# To test a specific menu function, we need to pass in user inputs
-# this is really easy with Bash!
 
-# we need to do two pipes, and the order matters
-# first we write the executable and the command line argument
-# then we pipe IN (using <) the file containing the user inputs
-# and then we pipe OUT (using >) to our tmp file
-./studentData data1.csv < inputs/example.txt > tmp
+echo -e "\n\n~~ File Handling~~"
+
+echo -n "Testing bad filename - "
+./studentData fake.csv > tmp
+if grep -q "Error: Bad filename" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing bad permissions - "
+timeout 0.2s ./studentData data/bad_perms.csv > tmp
+if grep -q "Error: Bad filename" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing bad data (missing) - "
+timeout 0.2s ./studentData data/bad_data_missing.csv > tmp
+if grep -q "Error: CSV file does not have expected format" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing bad data (too low) - "
+timeout 0.2s ./studentData data/bad_data_neg.csv > tmp
+if grep -q "Error: CSV file does not have expected format" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing bad data (too high) - "
+timeout 0.2s ./studentData data/bad_data_high.csv > tmp
+if grep -q "Error: CSV file does not have expected format" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing file loads successfully - "
+echo "1" | ./studentData data/original.csv > tmp
+if grep -q "File data/original.csv successfully loaded." tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -e "\n\n~~ Bad user inputs ~~"
+
+echo -n "Testing bad menu input (wrong) - "
+echo "a" | timeout 0.2s ./studentData data/original.csv > tmp
+if grep -q "Error: Invalid menu choice" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing bad menu input (empty) - "
+echo "" | timeout 0.2s ./studentData data/original.csv > tmp
+if grep -q "Error: Invalid menu choice" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing bad student ID - "
+timeout 0.2s ./studentData data/original.csv < inputs/bad_sid.in > tmp
+if grep -q "Error: Could not find student" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
 
 
-# alternatively because we have a very simple program, we can also do:
-echo "1" | ./studentData data1.csv > tmp
-# but this is only for when you have 1 input - you still need to write an input file for option 2
+echo -e "\n\n~~ Success ~~"
 
+echo -n "Testing option 1 - "
+echo "1" | timeout 0.2s ./studentData data/good_1_85.csv > tmp
+if grep -q "00291   Smith   John   85" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
 
+echo -n "Testing option 2 (good SID) - "
+timeout 0.2s ./studentData data/good_10_80.40.csv < inputs/good_sid.in > tmp
+if grep -q "Surname: Moore" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing option 3 - "
+echo "3" | timeout 0.2s ./studentData data/good_10_80.40.csv > tmp
+if grep -q "Average grade: 80.40" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing option 3 (no data) - "
+echo "3" | timeout 0.2s ./studentData data/good_empty.csv > tmp
+if grep -q "Average grade: 0" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+echo -n "Testing option 4 - "
+echo "3" | timeout 0.2s ./studentData data/good_10_80.40.csv > tmp
+if grep -q "Number of records: 10" tmp;
+then
+    echo "PASS"
+else
+    echo "FAIL"
+fi
+
+# adding read perms back on to this for git.
+chmod +r data/bad_perms.csv
 # I always tidy up and remove the tmp file at the end.
 rm -f tmp
