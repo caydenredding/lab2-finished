@@ -1,5 +1,7 @@
 #!/bin/bash
 
+chmod +x test.sh
+
 # remove read permissions from this file - note: put them back at the end!
 chmod -r data/bad_perms.csv
 
